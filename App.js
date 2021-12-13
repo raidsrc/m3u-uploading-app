@@ -6,7 +6,7 @@ import * as FileSystem from "expo-file-system";
 
 export default function App() {
 
-  const [huh, setHuh] = React.useState("this a hook.")
+  const [huh, setHuh] = React.useState(0)
 
 
 
@@ -15,15 +15,15 @@ export default function App() {
       <Text>Open up App.js to start working on your app!!!!!!!!!!!!!!!!!!!!!!1!!!!!!!!!!!11</Text>
       <StatusBar style="auto" />
       <Text>{huh}</Text>
-      <Button title="click me lol" onPress={() => {
-        setHuh("bru")
-        readShit()
+      <Button title="click me" onPress={() => {
+        setHuh(oldValue => oldValue + 1)
+      recursively_read_directory()
       }} />
     </View>
   );
 }
 
-async function readShit() {
+async function recursively_read_directory() {
 
   const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
@@ -32,10 +32,11 @@ async function readShit() {
     const uri = permissions.directoryUri;
 
     // Gets all files inside of selected directory
-    console.log("help")
-    const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
-    alert(`Files inside ${uri}:\n\n${JSON.stringify(files)}`);
     
+    const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
+    console.log(files)
+    alert(`Files inside ${uri}:\n\n ${JSON.stringify(files)}`);
+
   }
 }
 
