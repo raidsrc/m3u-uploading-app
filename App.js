@@ -17,22 +17,20 @@ export default function App() {
       <Text>{huh}</Text>
       <Button title="click me" onPress={() => {
         setHuh(oldValue => oldValue + 1)
-      recursively_read_directory()
+        fetch_m3u()
       }} />
     </View>
   );
 }
 
-async function recursively_read_directory() {
+async function fetch_m3u() {
 
   const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
   if (permissions.granted) {
     // Gets SAF URI from response
     const uri = permissions.directoryUri;
 
     // Gets all files inside of selected directory
-    
     const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
     console.log(files)
     alert(`Files inside ${uri}:\n\n ${JSON.stringify(files)}`);
