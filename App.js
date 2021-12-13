@@ -7,6 +7,7 @@ import * as FileSystem from "expo-file-system";
 export default function App() {
 
   const [huh, setHuh] = React.useState(0)
+  const [m3uFiles, setM3uFiles] = React.useState([])
 
   return (
     <View style={styles.container}>
@@ -15,8 +16,14 @@ export default function App() {
       <Text>{huh}</Text>
       <Button title="click me" onPress={() => {
         setHuh(oldValue => oldValue + 1)
-        fetch_m3u()
+        m3uFilesPromise = fetch_m3u()
+        m3uFilesPromise.then((m3u) => {
+          setM3uFiles(m3u)
+        }).catch((err) => {
+          console.error(err)
+        })
       }} />
+      <Text>{JSON.stringify(m3uFiles)}</Text>
     </View>
   );
 }
@@ -37,7 +44,11 @@ async function fetch_m3u() {
       }
     })
     alert(`m3u files inside ${uri}:\n\n ${m3uFileURIs}`);
-
+    // console.log(m3uFileURIs)
+    return m3uFileURIs
+  } else {
+    console.error("permissions to access the file system not granted. bummer")
+    return []
   }
 }
 
