@@ -8,11 +8,9 @@ export default function App() {
 
   const [huh, setHuh] = React.useState(0)
 
-
-
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!!!!!!!!!!!!!!!!!!!!!!1!!!!!!!!!!!11</Text>
+      <Text>!!!!!!11</Text>
       <StatusBar style="auto" />
       <Text>{huh}</Text>
       <Button title="click me" onPress={() => {
@@ -32,8 +30,13 @@ async function fetch_m3u() {
 
     // Gets all files inside of selected directory
     const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
-    console.log(files)
-    alert(`Files inside ${uri}:\n\n ${JSON.stringify(files)}`);
+    let m3uFileURIs = []
+    files.forEach((uri) => {
+      if (uri.includes("m3u")) {
+        m3uFileURIs.push(uri)
+      }
+    })
+    alert(`m3u files inside ${uri}:\n\n ${m3uFileURIs}`);
 
   }
 }
