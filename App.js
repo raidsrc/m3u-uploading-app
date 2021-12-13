@@ -32,17 +32,10 @@ async function readShit() {
     const uri = permissions.directoryUri;
 
     // Gets all files inside of selected directory
-    // const files = await StorageAccessFramework.readDirectoryAsync(uri);
-    // alert(`Files inside ${uri}:\n\n${JSON.stringify(files)}`);
-
-    const contentsOfDocumentDirectory = FileSystem.getInfoAsync(uri)
-    contentsOfDocumentDirectory.then((contents) => {
-      console.log(contents)
-      // setHuh(contents)
-    }
-    ).catch((err) => {
-      console.error(err)
-    })
+    console.log("help")
+    const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
+    alert(`Files inside ${uri}:\n\n${JSON.stringify(files)}`);
+    
   }
 }
 
