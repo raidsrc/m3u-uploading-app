@@ -3,7 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import * as FileSystem from "expo-file-system";
 import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from 'expo-web-browser'; 
+import * as WebBrowser from 'expo-web-browser';
 
 const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
 
@@ -11,7 +11,17 @@ export default function App() {
 
   const [huh, setHuh] = React.useState(0)
   const [m3uFiles, setM3uFiles] = React.useState([])
-  const [request, response, promptAsync] = Google.useAuthRequest({expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com"})
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com",
+    scopes: ["https://www.googleapis.com/auth/drive.file"]
+  })
+
+  React.useEffect(() => { // the function contained inside useEffect runs after render
+    if (response?.type === 'success') { // the ? is optional chaining. if response doesn't exist, response? will return undefined. this allows us to avoid throwing a runtime error
+      const { authentication } = response;
+      // console.log(authentication)
+    }
+  }, [response]); // only runs after the value of response changes
 
   return (
     <View style={styles.container}>
@@ -28,7 +38,17 @@ export default function App() {
         })
       }} />
       <Text>{JSON.stringify(m3uFiles)}</Text>
-      <Button title="click me to upload playlists to google drive" onPress={() => { WebBrowser.openAuthSessionAsync() }}></Button>
+      <Button
+        disabled={!request}
+        title="Login"
+        onPress={() => {
+          promptAsync();
+        }}
+      />
+      <Button title="click me to upload playlists to google drive" onPress={() => { 
+        //console.log(response.authentication.accessToken)
+        handleUploadingM3uToGoogleDrive(response.authentication.accessToken) 
+        }}></Button>
     </View>
   );
 }
@@ -40,27 +60,23 @@ export default function App() {
  * use that id to name the file appropriately 
  */
 
-async function handleUploadingM3uToGoogleDrive() {
-  let response = await postRequest(googleDriveSimpleUploadEndpoint, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-
+async function handleUploadingM3uToGoogleDrive(accessToken) {
+  console.log("access token:", accessToken)
+  let response = await postRequest(googleDriveSimpleUploadEndpoint, {
+    'Content-Type': 'text/plain',
+    'Connection': 'Keep-Alive',
+    'Authorization': "Bearer " + accessToken,
+  }, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+  console.log(JSON.stringify(response))
 }
 
-async function authenticateSelf () {
-
-}
-
-
-async function postRequest(url, data) {
+async function postRequest(url, headers, data) {
   let response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain', 
-      'Connection': 'keep-alive', 
-      
-    },
+    headers: headers,
     body: data
   });
-  console.log(JSON.stringify(response))
+  //console.log(JSON.stringify(response))
   return response;
 }
 
