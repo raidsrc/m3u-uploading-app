@@ -47,7 +47,7 @@ export default function App() {
       />
       <Button title="click me to upload playlists to google drive" onPress={() => { 
         //console.log(response.authentication.accessToken)
-        handleUploadingM3uToGoogleDrive(response.authentication.accessToken) 
+        handleUploadingM3uToGoogleDrive(response.accessToken) 
         }}></Button>
     </View>
   );
