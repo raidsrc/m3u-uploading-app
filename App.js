@@ -28,6 +28,7 @@ export default function App() {
       <Text>!!!!!!11</Text>
       <StatusBar style="auto" />
       <Text>{huh}</Text>
+      <Button title="click me to rerender" onPress={() => { setHuh(oldValue => oldValue - 1) }}></Button>
       <Button title="click me to fetch playlists" onPress={() => {
         setHuh(oldValue => oldValue + 1)
         m3uFilesPromise = fetch_m3u()
@@ -45,10 +46,10 @@ export default function App() {
           promptAsync();
         }}
       />
-      <Button title="click me to upload playlists to google drive" onPress={() => { 
-        //console.log(response.authentication.accessToken)
-        handleUploadingM3uToGoogleDrive(response.accessToken) 
-        }}></Button>
+      <Button title="click me to upload playlists to google drive" onPress={() => {
+        console.log(response.authentication.accessToken)
+        handleUploadingM3uToGoogleDrive(response.authentication.accessToken)
+      }}></Button>
     </View>
   );
 }
