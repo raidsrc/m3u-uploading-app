@@ -2,15 +2,17 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import * as FileSystem from "expo-file-system";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from 'expo-web-browser'; 
 
+const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
 
 export default function App() {
-  
+
   const [huh, setHuh] = React.useState(0)
   const [m3uFiles, setM3uFiles] = React.useState([])
+  const [request, response, promptAsync] = Google.useAuthRequest({expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com"})
 
-  
-  
   return (
     <View style={styles.container}>
       <Text>!!!!!!11</Text>
@@ -26,7 +28,7 @@ export default function App() {
         })
       }} />
       <Text>{JSON.stringify(m3uFiles)}</Text>
-      <Button title="click me to upload playlists to google drive"></Button>
+      <Button title="click me to upload playlists to google drive" onPress={() => { WebBrowser.openAuthSessionAsync() }}></Button>
     </View>
   );
 }
@@ -34,16 +36,31 @@ export default function App() {
 /**
  * for each m3u file found:
  * obtain the raw text of the file 
- * put that raw text into the body of an upload to google drive, get back the id
- * use the id to name the file appropriately 
+ * put that raw text into the body of an upload to google drive, get back the id in the response 
+ * use that id to name the file appropriately 
  */
+
+async function handleUploadingM3uToGoogleDrive() {
+  let response = await postRequest(googleDriveSimpleUploadEndpoint, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+}
+
+async function authenticateSelf () {
+
+}
+
 
 async function postRequest(url, data) {
   let response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'text/plain', 
+      'Connection': 'keep-alive', 
+      
+    },
     body: data
   });
+  console.log(JSON.stringify(response))
   return response;
 }
 
