@@ -64,9 +64,12 @@ function returnM3uFilesMoreAttractively(m3uList) {
  */
 async function getContentsOfM3uFiles(m3uFilePaths) {
   let totalM3uContentsObject = {}
-  m3uFilePaths.forEach(async function assignM3u(path) {
+  let index = 0
+  while (index < m3uFilePaths.length) {
+    let path = m3uFilePaths[index]
     totalM3uContentsObject[path] = await FileSystem.readAsStringAsync(path)
-  })
+    index++
+  }
   return totalM3uContentsObject
 }
 
@@ -77,18 +80,22 @@ async function getContentsOfM3uFiles(m3uFilePaths) {
  * use that id to name the file appropriately 
  */
 
-async function handleUploadingM3uToGoogleDrive(accessToken) {
-  const m3uFilesContentsObject = getContentsOfM3uFiles()
-  let response = await postRequest(googleDriveSimpleUploadEndpoint, {
-    'Content-Type': 'text/plain',
-    'Authorization': "Bearer " + accessToken,
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-    'Host': 'www.googleapis.com'
-  }, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-  let responseJson = await response.json() // this gets you the response body!
-  console.log(responseJson)
+async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
+  const m3uFilesContentsObject = await getContentsOfM3uFiles(m3uFiles) // returns an object 
+  for (let index = 0; index < Object.keys(m3uFilesContentsObject).length; index++) {
+    let response = await postRequest(googleDriveSimpleUploadEndpoint, {
+      'Content-Type': 'text/plain',
+      'Authorization': "Bearer " + accessToken,
+      'Accept': '*/*',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Host': 'www.googleapis.com'
+    }, m3uFilesContentsObject[m3uFiles[index]])
+    let responseBody = await response.json() // this gets you the response body!
+    let a = 0
+    let fileId = responseBody.id
+    
+  }
 }
 
 async function postRequest(url, headers, data) {
@@ -115,7 +122,7 @@ async function fetch_m3u() {
         m3uFileURIs.push(uri)
       }
     })
-    alert(`m3u files inside ${uri}:\n\n ${m3uFileURIs}`);
+    //alert(`m3u files inside ${uri}:\n\n ${m3uFileURIs}`);
     return m3uFileURIs
   } else {
     console.error("permissions to access the file system not granted. bummer")
