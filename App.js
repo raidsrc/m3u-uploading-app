@@ -18,8 +18,7 @@ export default function App() {
 
   React.useEffect(() => { // the function contained inside useEffect runs after render
     if (response?.type === 'success') { // the ? is optional chaining. if response doesn't exist, response? will return undefined. this allows us to avoid throwing a runtime error
-      const { authentication } = response;
-      // console.log(authentication)
+      const { authentication } = response; // this is object destructuring. this line pulls the key "authentication" out of the object "response" and assigns it to the variable with the same name, authentication
     }
   }, [response]); // only runs after the value of response changes
 
@@ -38,7 +37,7 @@ export default function App() {
           console.error(err)
         })
       }} />
-      <Text>{JSON.stringify(m3uFiles)}</Text>
+      <Text>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
       <Button
         disabled={!request}
         title="Login"
@@ -54,6 +53,15 @@ export default function App() {
   );
 }
 
+function returnM3uFilesMoreAttractively(m3uList) {
+  let m3uFilesString = ""
+  m3uList.forEach(m3u => {
+    m3uFilesString += m3u
+    m3uFilesString += "\n"
+  })
+  return m3uFilesString
+}
+
 /**
  * for each m3u file found:
  * obtain the raw text of the file 
@@ -62,7 +70,6 @@ export default function App() {
  */
 
 async function handleUploadingM3uToGoogleDrive(accessToken) {
-  console.log("access token:", accessToken)
   let response = await postRequest(googleDriveSimpleUploadEndpoint, {
     'Content-Type': 'text/plain',
     'Connection': 'Keep-Alive',
@@ -96,7 +103,6 @@ async function fetch_m3u() {
       }
     })
     alert(`m3u files inside ${uri}:\n\n ${m3uFileURIs}`);
-    // console.log(m3uFileURIs)
     return m3uFileURIs
   } else {
     console.error("permissions to access the file system not granted. bummer")
