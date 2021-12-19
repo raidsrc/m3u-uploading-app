@@ -101,13 +101,13 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
     let responseBody = await response.json() // this gets you the response body!
     let fileId = responseBody.id
     let updateEndpoint = googleDriveUpdateFileMetadataEndpoint + "?fileId=" + fileId // i should probably adopt some kind of abstraction for my parameters 
-    let response2 = await patchRequest(updateEndpoint, headersForPatch, {
-      "name": "test",
+    let fileMetadata = {
+      "name": ".",
       "description": "description goes here",
-    })
+    }
+    let response2 = await patchRequest(updateEndpoint, headersForPatch, JSON.stringify(fileMetadata))
     let response2Body = await response2.json()
     console.log(response2Body)
-    let a = 1
   }
 }
 
