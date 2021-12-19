@@ -5,6 +5,7 @@ import * as FileSystem from "expo-file-system";
 import * as Google from "expo-auth-session/providers/google";
 
 const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
+const googleDriveUpdateFileMetadataEndpoint = "https://www.googleapis.com/drive/v3/files/fileId"
 
 export default function App() {
   const [m3uFiles, setM3uFiles] = React.useState([])
@@ -25,7 +26,7 @@ export default function App() {
       <StatusBar style="auto" />
       <Image style={styles.bananas} source={{ uri: "https://m.media-amazon.com/images/I/61fZ+YAYGaL._SL1500_.jpg" }}></Image>
       <Button title="click me to fetch playlists" onPress={() => {
-        m3uFilesPromise = fetch_m3u()
+        let m3uFilesPromise = fetch_m3u()
         m3uFilesPromise.then((m3u) => {
           setM3uFiles(m3u)
         }).catch((err) => {
@@ -44,7 +45,6 @@ export default function App() {
       <Button title="click me to upload to google drive" onPress={() => {
         handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles)
       }}></Button>
-      <Button title="testing the m3u file contents function" onPress={() => getContentsOfM3uFiles(m3uFiles)}></Button>
     </View>
   );
 }
@@ -82,19 +82,32 @@ async function getContentsOfM3uFiles(m3uFilePaths) {
 
 async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
   const m3uFilesContentsObject = await getContentsOfM3uFiles(m3uFiles) // returns an object 
-  for (let index = 0; index < Object.keys(m3uFilesContentsObject).length; index++) {
-    let response = await postRequest(googleDriveSimpleUploadEndpoint, {
-      'Content-Type': 'text/plain',
-      'Authorization': "Bearer " + accessToken,
-      'Accept': '*/*',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
-      'Host': 'www.googleapis.com'
-    }, m3uFilesContentsObject[m3uFiles[index]])
+  const headersForPost = {
+    'Content-Type': 'text/plain',
+    'Authorization': "Bearer " + accessToken,
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+  }
+  const headersForPatch = {
+    'Content-Type': 'application/json',
+    'Authorization': "Bearer " + accessToken,
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+  }
+  for (let index = 0; index < Object.keys(m3uFilesContentsObject).length; index++) { // loop through each entry in the m3u files object
+    let response = await postRequest(googleDriveSimpleUploadEndpoint, headersForPost, m3uFilesContentsObject[m3uFiles[index]]) // post request to upload the m3u file with no metadata
     let responseBody = await response.json() // this gets you the response body!
-    let a = 0
     let fileId = responseBody.id
-    
+    let updateEndpoint = googleDriveUpdateFileMetadataEndpoint + "?fileId=" + fileId // i should probably adopt some kind of abstraction for my parameters 
+    let response2 = await patchRequest(updateEndpoint, headersForPatch, {
+      "name": "test",
+      "description": "description goes here",
+    })
+    let response2Body = await response2.json()
+    console.log(response2Body)
+    let a = 1
   }
 }
 
@@ -104,7 +117,15 @@ async function postRequest(url, headers, data) {
     headers: headers,
     body: data
   });
-  //console.log(JSON.stringify(response))
+  return response;
+}
+
+async function patchRequest(url, headers, data) {
+  let response = await fetch(url, {
+    method: 'PATCH',
+    headers: headers,
+    body: data
+  });
   return response;
 }
 
