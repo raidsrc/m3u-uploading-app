@@ -33,7 +33,7 @@ export default function App() {
         })
       }} />
       <Text>The .m3u files found in the directory of your choosing will be printed below.</Text>
-      <Text nativeID='m3uFilesOutputText'>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
+      <Text>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
       <Button
         disabled={!request}
         title="click me to log into google"
@@ -42,9 +42,9 @@ export default function App() {
         }}
       />
       <Button title="click me to upload to google drive" onPress={() => {
-        console.log(response.authentication.accessToken)
-        handleUploadingM3uToGoogleDrive(response.authentication.accessToken)
+        handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles)
       }}></Button>
+      <Button title="testing the m3u file contents function" onPress={() => getContentsOfM3uFiles(m3uFiles)}></Button>
     </View>
   );
 }
@@ -59,19 +59,36 @@ function returnM3uFilesMoreAttractively(m3uList) {
 }
 
 /**
+ * takes a list of paths to m3u files and returns an object with keys that are the paths of the 
+ * files and values that are the contents of each file in plaintext
+ */
+async function getContentsOfM3uFiles(m3uFilePaths) {
+  let totalM3uContentsObject = {}
+  m3uFilePaths.forEach(async function assignM3u(path) {
+    totalM3uContentsObject[path] = await FileSystem.readAsStringAsync(path)
+  })
+  return totalM3uContentsObject
+}
+
+/**
  * for each m3u file found:
- * obtain the raw text of the file 
+ * use the paths we got to acquire the raw text of the file 
  * put that raw text into the body of an upload to google drive, get back the id in the response 
  * use that id to name the file appropriately 
  */
 
 async function handleUploadingM3uToGoogleDrive(accessToken) {
-
+  const m3uFilesContentsObject = getContentsOfM3uFiles()
   let response = await postRequest(googleDriveSimpleUploadEndpoint, {
     'Content-Type': 'text/plain',
     'Authorization': "Bearer " + accessToken,
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+    'Host': 'www.googleapis.com'
   }, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-  console.log(response)
+  let responseJson = await response.json() // this gets you the response body!
+  console.log(responseJson)
 }
 
 async function postRequest(url, headers, data) {
