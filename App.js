@@ -1,15 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, Image } from 'react-native';
 import * as FileSystem from "expo-file-system";
 import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from 'expo-web-browser';
 
 const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
 
 export default function App() {
-
-  const [huh, setHuh] = React.useState(0)
   const [m3uFiles, setM3uFiles] = React.useState([])
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com",
@@ -24,12 +21,10 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>!!!!!!11</Text>
+
       <StatusBar style="auto" />
-      <Text>{huh}</Text>
-      <Button title="click me to rerender" onPress={() => { setHuh(oldValue => oldValue - 1) }}></Button>
+      <Image style={styles.bananas} source={{ uri: "https://m.media-amazon.com/images/I/61fZ+YAYGaL._SL1500_.jpg" }}></Image>
       <Button title="click me to fetch playlists" onPress={() => {
-        setHuh(oldValue => oldValue + 1)
         m3uFilesPromise = fetch_m3u()
         m3uFilesPromise.then((m3u) => {
           setM3uFiles(m3u)
@@ -37,15 +32,16 @@ export default function App() {
           console.error(err)
         })
       }} />
-      <Text>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
+      <Text>The .m3u files found in the directory of your choosing will be printed below.</Text>
+      <Text nativeID='m3uFilesOutputText'>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
       <Button
         disabled={!request}
-        title="Login"
+        title="click me to log into google"
         onPress={() => {
           promptAsync();
         }}
       />
-      <Button title="click me to upload playlists to google drive" onPress={() => {
+      <Button title="click me to upload to google drive" onPress={() => {
         console.log(response.authentication.accessToken)
         handleUploadingM3uToGoogleDrive(response.authentication.accessToken)
       }}></Button>
@@ -70,12 +66,12 @@ function returnM3uFilesMoreAttractively(m3uList) {
  */
 
 async function handleUploadingM3uToGoogleDrive(accessToken) {
+
   let response = await postRequest(googleDriveSimpleUploadEndpoint, {
     'Content-Type': 'text/plain',
-    'Connection': 'Keep-Alive',
     'Authorization': "Bearer " + accessToken,
-  }, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-  console.log(JSON.stringify(response))
+  }, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+  console.log(response)
 }
 
 async function postRequest(url, headers, data) {
@@ -116,5 +112,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
+  bananas: {
+    width: 100,
+    height: 100,
+  }
 });
