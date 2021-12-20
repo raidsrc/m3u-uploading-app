@@ -6,6 +6,7 @@ import * as Google from "expo-auth-session/providers/google";
 
 const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
 const googleDriveUpdateFileMetadataEndpoint = "https://www.googleapis.com/drive/v3/files/fileId"
+const computerMusicPath = "C:\\Users\\15107\\Music\\iTunes\\iTunes Media\\Music\\"
 
 export default function App() {
   const [m3uFiles, setM3uFiles] = React.useState([])
@@ -45,17 +46,43 @@ export default function App() {
       <Button title="click me to upload to google drive" onPress={() => {
         handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles)
       }}></Button>
+      {/* <Button title="test m3u phone to computer filepath conversion" onPress={() => {
+        let test1 = getContentsOfM3uFiles(m3uFiles)
+      }}></Button> */}
     </View>
   );
+}
+
+function getPlaylistName(m3uFilePath) {
+  // find last occurrence of '/', substring from then on is our playlist name
+  let decodedM3uFilePath = decodeURIComponent(m3uFilePath)
+  return decodedM3uFilePath.substring(decodedM3uFilePath.lastIndexOf("/") + 1)
 }
 
 function returnM3uFilesMoreAttractively(m3uList) {
   let m3uFilesString = ""
   m3uList.forEach(m3u => {
-    m3uFilesString += m3u
+    m3uFilesString += decodeURIComponent(m3u)
     m3uFilesString += "\n"
   })
   return m3uFilesString
+}
+
+/**
+ * 
+ * @param {*} m3uPhone a string containing the contents of an m3u file. in this m3u file are paths pointing to locations of music files on my phone.
+ * @returns the same string, mostly, but suitable for importing into itunes on my computer. meaning it contains paths to music files on my computer
+ */
+function generateComputerMusicPaths(m3uPhone) {
+  let splitM3uPhone = m3uPhone.split("\n")
+  let m3uComputer = "#EXTM3U\n"
+  splitM3uPhone.filter(line => !line.includes("#")).forEach((line) => {
+    let newLine = line.replaceAll("/", "\\")
+    m3uComputer += computerMusicPath
+    m3uComputer += newLine
+    m3uComputer += "\n"
+  })
+  return m3uComputer
 }
 
 /**
@@ -67,7 +94,8 @@ async function getContentsOfM3uFiles(m3uFilePaths) {
   let index = 0
   while (index < m3uFilePaths.length) {
     let path = m3uFilePaths[index]
-    totalM3uContentsObject[path] = await FileSystem.readAsStringAsync(path)
+    let m3uContents = await FileSystem.readAsStringAsync(path)
+    totalM3uContentsObject[path] = generateComputerMusicPaths(m3uContents)
     index++
   }
   return totalM3uContentsObject
@@ -102,7 +130,7 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
     let fileId = responseBody.id
     let updateEndpoint = googleDriveUpdateFileMetadataEndpoint + "?fileId=" + fileId // i should probably adopt some kind of abstraction for my parameters 
     let fileMetadata = {
-      "name": ".",
+      "name": getPlaylistName(m3uFiles[index]),
       "description": "description goes here",
     }
     let response2 = await patchRequest(updateEndpoint, headersForPatch, JSON.stringify(fileMetadata))
@@ -139,7 +167,7 @@ async function fetch_m3u() {
     const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(uri);
     let m3uFileURIs = []
     files.forEach((uri) => {
-      if (uri.includes("m3u")) {
+      if (uri.includes(".m3u")) {
         m3uFileURIs.push(uri)
       }
     })
