@@ -2,6 +2,7 @@
   "expo": {
     "name": "Ray's (Not Illegal) (Illegal) M3U Playlist (Unite) Synchronisticalizationalizer",
     "slug": "m3u-uploading-app",
+    "scheme": "m3usyncapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/eighth_notes_icon.png",
@@ -23,8 +24,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      },
-      "package": "com.raidsrc.m3usync"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -9,7 +9,7 @@ const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive
 const googleDriveUpdateFileMetadataEndpoint = "https://www.googleapis.com/drive/v3/files/fileId"
 const computerMusicPath = "C:\\Users\\15107\\Music\\iTunes\\iTunes Media\\Music\\"
 
-const productionRedirectUri = AuthSession.makeRedirectUri({ useProxy: false })
+const productionRedirectUri = "exp://exp.host/@raidsrc/m3u-uploading-app"
 
 export default function App() {
   const [m3uFiles, setM3uFiles] = React.useState([])
