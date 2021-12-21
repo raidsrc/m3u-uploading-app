@@ -12,7 +12,7 @@ const productionRedirectUri = "exp://exp.host/@raidsrc/m3u-uploading-app"
 
 export default function App() {
   const [m3uFiles, setM3uFiles] = React.useState([])
-  const [debugUploadText, setDebugUploadText] = React.useState(".")
+  const [debugUploadText, setDebugUploadText] = React.useState("")
   const [uploadedText, setUploadedText] = React.useState("")
   const [showGoogleLoginResponse, setShowGoogleLoginResponse] = React.useState(false)
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -61,18 +61,17 @@ export default function App() {
       </View>
       <View style={styles.container}>
         <Button title="click me to upload to google drive" onPress={() => {
-          handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles, setUploadedText, setDebugUploadText)
+          handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles, setUploadedText)
         }}></Button>
         {/* <Button title="test m3u phone to computer filepath conversion" onPress={() => {
         let test1 = getContentsOfM3uFiles(m3uFiles)
       }}></Button> */}
-      <Text>{uploadedText}</Text>
+        <Text>{uploadedText}</Text>
         <Text>debuggery text goes here</Text>
-        <Text>{debugUploadText}</Text>
+        {/* <Text>{debugUploadText}</Text> */}
       </View>
       <View style={styles.bottomContainer}>
         <Button title="clear text" onPress={() => {
-          setDebugUploadText("")
           setUploadedText("")
           setM3uFiles([])
           setShowGoogleLoginResponse(false)
@@ -102,20 +101,16 @@ function returnM3uFilesMoreAttractively(m3uList) {
  * @param {*} m3uPhone a string containing the contents of an m3u file. in this m3u file are paths pointing to locations of music files on my phone.
  * @returns the same string, mostly, but suitable for importing into itunes on my computer. meaning it contains paths to music files on my computer
  */
-function generateComputerMusicPaths(m3uPhone, setDebugUploadText) {
+function generateComputerMusicPaths(m3uPhone) {
   let splitM3uPhone = m3uPhone.split("\n")
   let m3uComputer = "#EXTM3U\n"
   splitM3uPhone.filter(line => !line.includes("#")).forEach((line) => {
-    setDebugUploadText(old => old + "\n generating computer music paths")
-    setDebugUploadText(old => old + "\n line: " + line)
     let searchRegex = /\//g
-    let newLine = line.replace(searchRegex, "\\") // THIS LINE MUST THROW AN ERROR IN PRODUCTION 
-    setDebugUploadText(old => old + "\n " + newLine)
+    let newLine = line.replace(searchRegex, "\\")
     m3uComputer += computerMusicPath
     m3uComputer += newLine
     m3uComputer += "\n"
   })
-  setDebugUploadText(old => old + "\n m3u computer paths: " + m3uComputer)
   return m3uComputer
 }
 
@@ -123,20 +118,15 @@ function generateComputerMusicPaths(m3uPhone, setDebugUploadText) {
  * takes a list of paths to m3u files and returns an object with keys that are the paths of the 
  * files and values that are the contents of each file in plaintext
  */
-async function getContentsOfM3uFiles(m3uFilePaths, setDebugUploadText) {
+async function getContentsOfM3uFiles(m3uFilePaths) {
   let totalM3uContentsObject = {}
   let index = 0
-  setDebugUploadText(old => old + "\n getting contents of m3u files")
-  setDebugUploadText(old => old + "\n" + m3uFilePaths)
   while (index < m3uFilePaths.length) {
-    setDebugUploadText(old => old + "\n iterating through m3uFilePaths")
     let path = m3uFilePaths[index]
     let m3uContents = await FileSystem.readAsStringAsync(path)
-    setDebugUploadText(old => old + "\n contents of m3u file:" + m3uContents)
-    totalM3uContentsObject[path] = generateComputerMusicPaths(m3uContents, setDebugUploadText)
+    totalM3uContentsObject[path] = generateComputerMusicPaths(m3uContents)
     index++
   }
-  setDebugUploadText(old => old + "\n total m3u contents object: " + JSON.stringify(totalM3uContentsObject))
   return totalM3uContentsObject
 }
 
@@ -147,10 +137,8 @@ async function getContentsOfM3uFiles(m3uFilePaths, setDebugUploadText) {
  * use that id to name the file appropriately 
  */
 
-async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploadedText, setDebugUploadText) {
-  setDebugUploadText(old => old + "\n beginning handleUploadingM3uToGoogleDrive")
-  const m3uFilesContentsObject = await getContentsOfM3uFiles(m3uFiles, setDebugUploadText) // returns an object 
-  setDebugUploadText(old => m3uFilesContentsObject ? old + "\n " + JSON.stringify(m3uFilesContentsObject) : old + "\n failed to create m3u files contents object")
+async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploadedText) {
+  const m3uFilesContentsObject = await getContentsOfM3uFiles(m3uFiles) // returns an object 
   const headersForPost = {
     'Content-Type': 'text/plain',
     'Authorization': "Bearer " + accessToken,
@@ -169,7 +157,6 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploade
     setUploadedText("Playlists uploading...")
     let response = await postRequest(googleDriveSimpleUploadEndpoint, headersForPost, m3uFilesContentsObject[m3uFiles[index]]) // post request to upload the m3u file with no metadata
     let responseBody = await response.json() // this gets you the response body!
-    setDebugUploadText(old => old + "\n responseBody (posting playlist to drive): " + JSON.stringify(responseBody))
     let fileId = responseBody.id
     let updateEndpoint = googleDriveUpdateFileMetadataEndpoint + "?fileId=" + fileId // i should probably adopt some kind of abstraction for my parameters 
     let fileMetadata = {
@@ -178,7 +165,6 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploade
     }
     let response2 = await patchRequest(updateEndpoint, headersForPatch, JSON.stringify(fileMetadata))
     let response2Body = await response2.json()
-    setDebugUploadText(old => old + "\n response2Body (renaming the file): " + JSON.stringify(response2Body))
     console.log(response2Body)
   }
   setUploadedText("Successfully uploaded all your playlists.")
