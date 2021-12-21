@@ -67,7 +67,7 @@ export default function App() {
         let test1 = getContentsOfM3uFiles(m3uFiles)
       }}></Button> */}
         <Text>{uploadedText}</Text>
-        <Text>debuggery text goes here</Text>
+        {/* <Text>debuggery text goes here</Text> */}
         {/* <Text>{debugUploadText}</Text> */}
       </View>
       <View style={styles.bottomContainer}>
