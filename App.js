@@ -108,7 +108,8 @@ function generateComputerMusicPaths(m3uPhone, setDebugUploadText) {
   splitM3uPhone.filter(line => !line.includes("#")).forEach((line) => {
     setDebugUploadText(old => old + "\n generating computer music paths")
     setDebugUploadText(old => old + "\n line: " + line)
-    let newLine = line.replaceAll("/", "\\") // THIS LINE MUST THROW AN ERROR IN PRODUCTION 
+    let searchRegex = /\//g
+    let newLine = line.replace(searchRegex, "\\") // THIS LINE MUST THROW AN ERROR IN PRODUCTION 
     setDebugUploadText(old => old + "\n " + newLine)
     m3uComputer += computerMusicPath
     m3uComputer += newLine
