@@ -3,13 +3,17 @@ import React from 'react';
 import { StyleSheet, Text, View, Button, Image } from 'react-native';
 import * as FileSystem from "expo-file-system";
 import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from 'expo-auth-session'
 
 const googleDriveSimpleUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media"
 const googleDriveUpdateFileMetadataEndpoint = "https://www.googleapis.com/drive/v3/files/fileId"
 const computerMusicPath = "C:\\Users\\15107\\Music\\iTunes\\iTunes Media\\Music\\"
 
+const productionRedirectUri = AuthSession.makeRedirectUri({ useProxy: false })
+
 export default function App() {
   const [m3uFiles, setM3uFiles] = React.useState([])
+  const [uploadedText, setUploadedText] = React.useState("")
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com",
     scopes: ["https://www.googleapis.com/auth/drive.file"]
@@ -23,8 +27,10 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-
       <StatusBar style="auto" />
+      <View style={styles.titleContainer}>
+        <Text style={styles.titleText}>Ray's Personal Phone-To-Computer .m3u File Synchronizer</Text>
+      </View>
       <Image style={styles.bananas} source={{ uri: "https://m.media-amazon.com/images/I/61fZ+YAYGaL._SL1500_.jpg" }}></Image>
       <Button title="click me to fetch playlists" onPress={() => {
         let m3uFilesPromise = fetch_m3u()
@@ -40,15 +46,16 @@ export default function App() {
         disabled={!request}
         title="click me to log into google"
         onPress={() => {
-          promptAsync();
+          promptAsync({ productionRedirectUri });
         }}
       />
       <Button title="click me to upload to google drive" onPress={() => {
-        handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles)
+        handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles, setUploadedText)
       }}></Button>
       {/* <Button title="test m3u phone to computer filepath conversion" onPress={() => {
         let test1 = getContentsOfM3uFiles(m3uFiles)
       }}></Button> */}
+      <Text>{uploadedText}</Text>
     </View>
   );
 }
@@ -108,7 +115,7 @@ async function getContentsOfM3uFiles(m3uFilePaths) {
  * use that id to name the file appropriately 
  */
 
-async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
+async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploadedText) {
   const m3uFilesContentsObject = await getContentsOfM3uFiles(m3uFiles) // returns an object 
   const headersForPost = {
     'Content-Type': 'text/plain',
@@ -136,7 +143,9 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles) {
     let response2 = await patchRequest(updateEndpoint, headersForPatch, JSON.stringify(fileMetadata))
     let response2Body = await response2.json()
     console.log(response2Body)
+    setUploadedText("Playlists uploading...")
   }
+  setUploadedText("Successfully uploaded all your playlists.")
 }
 
 async function postRequest(url, headers, data) {
@@ -190,5 +199,13 @@ const styles = StyleSheet.create({
   bananas: {
     width: 100,
     height: 100,
+  },
+  titleText: {
+    fontSize: 20,
+    textAlign: "center"
+  },
+  titleContainer: {
+    padding: 20,
+    marginBottom: 20
   }
 });
