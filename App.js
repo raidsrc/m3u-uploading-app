@@ -28,12 +28,14 @@ export default function App() {
 
   return (
     <ScrollView style={styles.parentContainer}>
-      <StatusBar style="auto" />
+      <StatusBar />
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Ray's Personal Phone-To-Computer .m3u File Synchronizer</Text>
       </View>
       <View style={styles.imageContainer}>
+        <Image style={styles.bananas} source={require("./assets/eighth_notes_icon.png")} />
         <Image style={styles.bananas} source={{ uri: "https://m.media-amazon.com/images/I/61fZ+YAYGaL._SL1500_.jpg" }} />
+        <Image style={styles.bananas} source={require("./assets/eighth_notes_icon.png")} />
       </View>
       <View style={styles.container}>
 
@@ -57,7 +59,7 @@ export default function App() {
             setShowGoogleLoginResponse(true)
           }}
         />
-        <Text>{showGoogleLoginResponse ? JSON.stringify(response) : ""}</Text>
+        <Text>{showGoogleLoginResponse ? JSON.stringify(Object.keys(response)[0]) + ": " + JSON.stringify(response.type) : ""}</Text>
       </View>
       <View style={styles.container}>
         <Button title="click me to upload to google drive" onPress={() => {
@@ -154,7 +156,7 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploade
     'Connection': 'keep-alive',
   }
   for (let index = 0; index < Object.keys(m3uFilesContentsObject).length; index++) { // loop through each entry in the m3u files object
-    setUploadedText("Playlists uploading...")
+    index === 0 ? setUploadedText("Uploading initiated.") : ""
     let response = await postRequest(googleDriveSimpleUploadEndpoint, headersForPost, m3uFilesContentsObject[m3uFiles[index]]) // post request to upload the m3u file with no metadata
     let responseBody = await response.json() // this gets you the response body!
     let fileId = responseBody.id
@@ -166,8 +168,9 @@ async function handleUploadingM3uToGoogleDrive(accessToken, m3uFiles, setUploade
     let response2 = await patchRequest(updateEndpoint, headersForPatch, JSON.stringify(fileMetadata))
     let response2Body = await response2.json()
     console.log(response2Body)
+    setUploadedText(old => old + "\nUploaded " + fileMetadata.name + ".")
   }
-  setUploadedText("Successfully uploaded all your playlists.")
+  setUploadedText(old => old + "\nSuccessfully uploaded all your playlists.")
 }
 
 async function postRequest(url, headers, data) {
@@ -220,7 +223,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   imageContainer: {
-    alignItems: "center"
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center"
   },
   bottomContainer: {
     marginBottom: 150
@@ -228,6 +233,10 @@ const styles = StyleSheet.create({
   bananas: {
     width: 100,
     height: 100,
+  },
+  notes: {
+    width: 80,
+    height: 80,
   },
   titleText: {
     fontSize: 20,
