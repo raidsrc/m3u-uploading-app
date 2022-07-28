@@ -1,4 +1,8 @@
-# dickin-around-w-react-native
+# m3u-uploading-app
+
+## formerly known as "dickin-around-w-react-native"
+
+### it's true, that's what i was doin'
 
 I save all my music locally on my phone. No Spotify or Apple Music or whatever for me. Spotify is highway robbery for musical artists. So I make playlists on my phone. These playlists are not synced with my computer. I want to sync them with my computer via a few clicks of buttons. How do I do that?
 
