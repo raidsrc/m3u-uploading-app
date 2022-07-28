@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/eighth_notes_icon.png",
     "splash": {
-      "image": "./assets/splash2.jpg",
+      "image": "./assets/splash3.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

@@ -11,10 +11,10 @@ const computerMusicPath = "C:\\Users\\15107\\Music\\iTunes\\iTunes Media\\Music\
 const productionRedirectUri = "exp://exp.host/@raidsrc/m3u-uploading-app"
 
 export default function App() {
-  const [m3uFiles, setM3uFiles] = React.useState([])
-  const [debugUploadText, setDebugUploadText] = React.useState("")
+  const [m3uFiles, setM3uFiles] = React.useState(["ain't shit here"])
+  // const [debugUploadText, setDebugUploadText] = React.useState("")
   const [uploadedText, setUploadedText] = React.useState("")
-  const [showGoogleLoginResponse, setShowGoogleLoginResponse] = React.useState(false)
+  const [googleResponseMessage, setGoogleResponseMessage] = React.useState("")
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: "595299029637-sqhkdpn78fd87gaa68mscfs430ckgcih.apps.googleusercontent.com",
     scopes: ["https://www.googleapis.com/auth/drive.file"]
@@ -26,9 +26,13 @@ export default function App() {
     }
   }, [response]); // only runs after the value of response changes
 
+  React.useEffect(() => {
+    determineGoogleLoginResponseLogic(response, setGoogleResponseMessage)
+  }, [response])
+
   return (
     <ScrollView style={styles.parentContainer}>
-      <StatusBar />
+      <StatusBar barStyle='light-content' backgroundColor='#ffffff' />
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Ray's Personal Phone-To-Computer .m3u File Synchronizer</Text>
       </View>
@@ -38,49 +42,71 @@ export default function App() {
         <Image style={styles.bananas} source={require("./assets/eighth_notes_icon.png")} />
       </View>
       <View style={styles.container}>
-
-        <Button title="click me to fetch playlists" onPress={() => {
-          let m3uFilesPromise = fetch_m3u()
-          m3uFilesPromise.then((m3u) => {
-            setM3uFiles(m3u)
-          }).catch((err) => {
-            console.error(err)
-          })
-        }} />
-        <Text>The .m3u files found in the directory of your choosing will be printed below.</Text>
-        <Text>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
+        <View style={styles.buttonContainer}>
+          <Button title="click me to fetch playlists" onPress={() => {
+            let m3uFilesPromise = fetch_m3u()
+            m3uFilesPromise.then((m3u) => {
+              setM3uFiles(m3u)
+            }).catch((err) => {
+              console.error(err)
+            })
+          }} />
+        </View>
+        <Text style={styles.centerBoxText}>{returnM3uFilesMoreAttractively(m3uFiles)}</Text>
       </View>
       <View style={styles.container}>
-        <Button
-          disabled={!request}
-          title="click me to log into google"
-          onPress={() => {
-            promptAsync({ productionRedirectUri });
-            setShowGoogleLoginResponse(true)
-          }}
-        />
-        <Text>{showGoogleLoginResponse ? JSON.stringify(Object.keys(response)[0]) + ": " + JSON.stringify(response.type) : ""}</Text>
+        <View style={styles.buttonContainer}>
+          <Button
+            disabled={!request}
+            title="click me to log into google"
+            onPress={() => {
+              promptAsync({ productionRedirectUri });
+            }}
+          />
+        </View>
+        <Text style={styles.centerBoxText}>{googleResponseMessage}</Text>
       </View>
       <View style={styles.container}>
-        <Button title="click me to upload to google drive" onPress={() => {
-          handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles, setUploadedText)
-        }}></Button>
+        <View style={styles.buttonContainer}>
+          <Button title="click me to upload to google drive" onPress={() => {
+            handleUploadingM3uToGoogleDrive(response.authentication.accessToken, m3uFiles, setUploadedText)
+          }}></Button>
+        </View>
         {/* <Button title="test m3u phone to computer filepath conversion" onPress={() => {
         let test1 = getContentsOfM3uFiles(m3uFiles)
       }}></Button> */}
-        <Text>{uploadedText}</Text>
+        <Text style={styles.centerBoxText}>{uploadedText}</Text>
         {/* <Text>debuggery text goes here</Text> */}
         {/* <Text>{debugUploadText}</Text> */}
       </View>
       <View style={styles.bottomContainer}>
-        <Button title="clear text" onPress={() => {
-          setUploadedText("")
-          setM3uFiles([])
-          setShowGoogleLoginResponse(false)
-        }}></Button>
+        <View style={styles.buttonContainer}>
+          <Button title="clear text" onPress={() => {
+            setUploadedText("")
+            setM3uFiles(["ain't shit here"])
+            setGoogleResponseMessage("")
+          }}></Button>
+        </View>
       </View>
     </ScrollView>
   );
+}
+
+function determineGoogleLoginResponseLogic(response, setGoogleResponseMessage) {
+  // response will be null until we get something back from google. hide the response/response message from view until it's not null anymore.
+  try {
+    if (response !== null) { // if response is not falsy, i.e. if response exists
+      if (response.type == "success") {
+        setGoogleResponseMessage("Login successful.")
+      } else {
+        setGoogleResponseMessage("Login status beyond comprehension. Try logging in again. Or maybe Google's servers are down. Or maybe you exceeded your API usage limit.")
+      }
+    } else { // if response is falsy. if response is null.
+      setGoogleResponseMessage("")
+    }
+  } catch (error) {
+    setGoogleResponseMessage("Response is null. You shouldn't be seeing this message. Something is wrong. Oh no.")
+  }
 }
 
 function getPlaylistName(m3uFilePath) {
@@ -90,12 +116,19 @@ function getPlaylistName(m3uFilePath) {
 }
 
 function returnM3uFilesMoreAttractively(m3uList) {
-  let m3uFilesString = ""
-  m3uList.forEach(m3u => {
-    m3uFilesString += decodeURIComponent(m3u)
-    m3uFilesString += "\n"
-  })
-  return m3uFilesString
+  if (m3uList[0] == "ain't shit here") {
+    return ""
+  } else if (m3uList.length == 0) {
+    return "Found no playlists."
+  } else {
+    let m3uFilesString = "Here are the paths of all the playlists I found. \n\n"
+    m3uList.forEach(m3u => {
+      m3uFilesString += "> "
+      m3uFilesString += decodeURIComponent(m3u)
+      m3uFilesString += "\n"
+    })
+    return m3uFilesString
+  }
 }
 
 /**
@@ -242,8 +275,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: "center"
   },
+  buttonContainer: {
+    marginBottom: 20
+  },
   titleContainer: {
     padding: 20,
     marginBottom: 20
+  },
+  centeredText: {
+    textAlign: "center"
+  },
+  centerBoxText: {
+    textAlign: 'left',
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderWidth: 1,
+    padding: 20,
+    borderRadius: 5
   }
 });
